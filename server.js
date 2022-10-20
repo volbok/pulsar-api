@@ -6,6 +6,19 @@ const port = 3333;
 
 app.use(cors());
 
+app.use(function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Request-Private-Network", "true");
+  res.header("Access-Control-Allow-Private-Network", "true");
+  res.header(
+    "Access-Control-Request-Private-Network",
+    "Access-Control-Allow-Private-Network",
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  next();
+});
+
 app.use(bodyParser.json());
 app.use(
   bodyParser.urlencoded({
@@ -20,7 +33,7 @@ app.get("/", (request, response) => {
 });
 
 app.listen(process.env.PORT || 3002, () => {
-  console.log('Servidor rodando na porta 3002')
+    console.log('Servidor rodando na porta 3002')
 })
 
 const Pool = require("pg").Pool;
