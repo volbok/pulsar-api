@@ -38,10 +38,10 @@ app.listen(port, () => {
 
 const Pool = require("pg").Pool;
 const pool = new Pool({
-  user: "postgres",
-  host: "localhost",
-  database: "pulsar",
-  password: "pulsar",
+  user: "iapwpxsxlwaarj",
+  host: "ec2-3-223-169-166.compute-1.amazonaws.com",
+  database: "d1hokiurkipl2h",
+  password: "fd473d4c39c22145874db92a1153c2bad62575182c5769f89e39a9b3b90fadd6",
   port: 5432,
 });
 
