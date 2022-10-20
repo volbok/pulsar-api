@@ -5,6 +5,7 @@ const app = express();
 const port = 3333;
 
 app.use(cors());
+/*
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Request-Private-Network", "true");
@@ -17,6 +18,7 @@ app.use(function (req, res, next) {
   );
   next();
 });
+*/
 app.use(bodyParser.json());
 app.use(
   bodyParser.urlencoded({
@@ -26,7 +28,7 @@ app.use(
 
 app.get("/", (request, response) => {
   response.json({
-    info: "API Node.js + Express + Postgres API - PAULO DE TARSO",
+    info: "API Node.js + Express + Postgres API - PULSAR",
   });
 });
 
