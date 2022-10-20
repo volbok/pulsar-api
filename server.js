@@ -1,51 +1,21 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-var cors = require("cors");
-const app = express();
-const port = 3333;
+const express = require('express')
+const cors = require('cors')
 
-app.use(cors());
+const app = express()
+const port = process.env.PORT || 8000
 
-app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Request-Private-Network", "true");
-  res.header("Access-Control-Allow-Private-Network", "true");
-  res.header(
-    "Access-Control-Request-Private-Network",
-    "Access-Control-Allow-Private-Network",
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
-});
+app.use(cors())
+app.use(express.json())
 
-app.use(bodyParser.json());
-app.use(
-  bodyParser.urlencoded({
-    extended: true,
-  })
-);
-
-app.get("/", (request, response) => {
-  response.json({
-    info: "API Node.js + Express + Postgres API - PULSAR",
-  });
-});
+app.get('/', (req, res) => {
+    res.send('<h1>This is a test application</h1>')
+})
 
 app.listen(port, () => {
-  console.log("API rodando na porta " + port);
-});
+    console.log('RODANDO LEGAL')
+})
 
-const Pool = require("pg").Pool;
-const pool = new Pool({
-  user: "ghap",
-  host: "10.0.6.3",
-  database: "pulsar",
-  password: "ghap",
-  port: 5432,
-});
-
-// ENDPOINTS //
+// ENDPOINTS - PULSAR //
 
 // CLIENTES (HOSPITAIS E UNIDADES DE SAÚDE).
 // listar todos os clientes (hospitais).
