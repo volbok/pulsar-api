@@ -5,7 +5,6 @@ const app = express();
 const port = 3333;
 
 app.use(cors());
-
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Request-Private-Network", "true");
@@ -18,7 +17,6 @@ app.use(function (req, res, next) {
   );
   next();
 });
-
 app.use(bodyParser.json());
 app.use(
   bodyParser.urlencoded({
@@ -32,20 +30,20 @@ app.get("/", (request, response) => {
   });
 });
 
-app.listen(process.env.PORT || 3002, () => {
-    console.log('Servidor rodando na porta 3002')
-})
+app.listen(port, () => {
+  console.log("API rodando na porta " + port);
+});
 
 const Pool = require("pg").Pool;
 const pool = new Pool({
-  user: "iapwpxsxlwaarj",
-  host: "ec2-3-223-169-166.compute-1.amazonaws.com",
-  database: "d1hokiurkipl2h",
-  password: "fd473d4c39c22145874db92a1153c2bad62575182c5769f89e39a9b3b90fadd6",
+  user: "postgres",
+  host: "localhost",
+  database: "pulsar",
+  password: "pulsar",
   port: 5432,
 });
 
-// ENDPOINTS - PULSAR //
+// ENDPOINTS //
 
 // CLIENTES (HOSPITAIS E UNIDADES DE SAÚDE).
 // listar todos os clientes (hospitais).
@@ -427,21 +425,23 @@ app.post("/insert_atendimento", (req, res) => {
   const {
     data_inicio,
     data_termino,
-    historia_atual,
+    problemas,
     id_paciente,
     id_unidade,
     nome_paciente,
-    leito
+    leito,
+    situacao
   } = req.body;
-  var sql = "INSERT INTO atendimento (data_inicio, data_termino, historia_atual, id_paciente, id_unidade, nome_paciente, leito) VALUES ($1, $2, $3, $4, $5, $6, $7)"
+  var sql = "INSERT INTO atendimento (data_inicio, data_termino, problemas, id_paciente, id_unidade, nome_paciente, leito, situacao) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"
   pool.query(sql, [
     data_inicio,
     data_termino,
-    historia_atual,
+    problemas,
     id_paciente,
     id_unidade,
     nome_paciente,
-    leito
+    leito,
+    situacao
   ], (error, results) => {
     if (error) throw error;
     res.send(results);
@@ -454,21 +454,23 @@ app.post("/update_atendimento/:id_atendimento", (req, res) => {
   const {
     data_inicio,
     data_termino,
-    historia_atual,
-    id_paciente,
-    id_unidade,
-    nome_paciente,
-    leito
-  } = req.body;
-  var sql = "UPDATE atendimento SET data_inicio = $1, data_termino = $2, historia_atual = $3, id_paciente = $4, id_unidade = $5, nome_paciente = $6, leito = $7 WHERE id_atendimento = $8";
-  pool.query(sql, [
-    data_inicio,
-    data_termino,
-    historia_atual,
+    problemas,
     id_paciente,
     id_unidade,
     nome_paciente,
     leito,
+    situacao
+  } = req.body;
+  var sql = "UPDATE atendimento SET data_inicio = $1, data_termino = $2, problemas = $3, id_paciente = $4, id_unidade = $5, nome_paciente = $6, leito = $7, situacao = $8 WHERE id_atendimento = $9";
+  pool.query(sql, [
+    data_inicio,
+    data_termino,
+    problemas,
+    id_paciente,
+    id_unidade,
+    nome_paciente,
+    leito,
+    situacao,
     id_atendimento
   ], (error, results) => {
     if (error) throw error;
@@ -702,16 +704,18 @@ app.post("/insert_proposta", (req, res) => {
     status,
     data_proposta,
     id_usuario,
-    prazo
+    prazo,
+    data_conclusao,
   } = req.body;
-  var sql = "INSERT INTO atendimento_propostas (id_atendimento, proposta, status, data_proposta, id_usuario, prazo) VALUES ($1, $2, $3, $4, $5, $6)"
+  var sql = "INSERT INTO atendimento_propostas (id_atendimento, proposta, status, data_proposta, id_usuario, prazo, data_conclusao) VALUES ($1, $2, $3, $4, $5, $6, $7)"
   pool.query(sql, [
     id_atendimento,
     proposta,
     status,
     data_proposta,
     id_usuario,
-    prazo
+    prazo,
+    data_conclusao,
   ], (error, results) => {
     if (error) throw error;
     res.send(results);
@@ -727,9 +731,10 @@ app.post("/update_proposta/:id_proposta", (req, res) => {
     status,
     data_proposta,
     id_usuario,
-    prazo
+    prazo,
+    data_conclusao,
   } = req.body;
-  var sql = "UPDATE atendimento_propostas SET id_atendimento = $1, proposta = $2, status = $3, data_proposta = $4, id_usuario = $5, prazo = $6 WHERE id_proposta = $7";
+  var sql = "UPDATE atendimento_propostas SET id_atendimento = $1, proposta = $2, status = $3, data_proposta = $4, id_usuario = $5, prazo = $6, data_conclusao = $7 WHERE id_proposta = $8";
   pool.query(sql, [
     id_atendimento,
     proposta,
@@ -737,6 +742,7 @@ app.post("/update_proposta/:id_proposta", (req, res) => {
     data_proposta,
     id_usuario,
     prazo,
+    data_conclusao,
     id_proposta
   ], (error, results) => {
     if (error) throw error;
@@ -874,7 +880,7 @@ app.post("/update_vm/:id_vm", (req, res) => {
     fio2,
     data_vm
   } = req.body;
-  var sql = "UPDATE atendimento_propostas SET id_atendimento = $1, modo = $2, pressao = $3, volume = $4, peep = $5, fio2 = $6, data_vm  = $7 WHERE id_vm = $8";
+  var sql = "UPDATE atendimento_vm SET id_atendimento = $1, modo = $2, pressao = $3, volume = $4, peep = $5, fio2 = $6, data_vm  = $7 WHERE id_vm = $8";
   pool.query(sql, [
     id_atendimento,
     modo,
@@ -967,6 +973,73 @@ app.get("/delete_cultura/:id_cultura", (req, res) => {
   });
 });
 
+// ATENDIMENTOS - ANTIBIÓTICOS.
+// listar todos os registros de antibióticos relativos ao atendimento selecionado.
+app.get("/list_antibioticos/:id_atendimento", (req, res) => {
+  const id_atendimento = parseInt(req.params.id_atendimento);
+  var sql = "SELECT * FROM atendimento_antibioticos WHERE id_atendimento = $1";
+  pool.query(sql, [id_atendimento], (error, results) => {
+    if (error) throw error;
+    res.send(results);
+  });
+});
+
+// inserir antibiótico.
+app.post("/insert_antibiotico", (req, res) => {
+  const {
+    id_atendimento,
+    antibiotico,
+    data_inicio,
+    data_termino,
+    prazo,
+  } = req.body;
+  var sql = "INSERT INTO atendimento_antibioticos (id_atendimento, antibiotico, data_inicio, data_termino, prazo) VALUES ($1, $2, $3, $4, $5)"
+  pool.query(sql, [
+    id_atendimento,
+    antibiotico,
+    data_inicio,
+    data_termino,
+    prazo,
+  ], (error, results) => {
+    if (error) throw error;
+    res.send(results);
+  });
+});
+
+// atualizar antibiótico.
+app.post("/update_antibiotico/:id_antibiotico", (req, res) => {
+  const id_antibiotico = parseInt(req.params.id_antibiotico);
+  const {
+    id_atendimento,
+    antibiotico,
+    data_inicio,
+    data_termino,
+    prazo,
+  } = req.body;
+  var sql = "UPDATE atendimento_antibioticos SET id_atendimento = $1, antibiotico = $2, data_inicio = $3, data_termino = $4, prazo = $5 WHERE id_antibiotico = $6";
+  pool.query(sql, [
+    id_atendimento,
+    antibiotico,
+    data_inicio,
+    data_termino,
+    prazo,
+    id_antibiotico
+  ], (error, results) => {
+    if (error) throw error;
+    res.send(results);
+  });
+});
+
+// excluir antibiótico.
+app.get("/delete_antibiotico/:id_antibiotico", (req, res) => {
+  const id_antibiotico = parseInt(req.params.id_antibiotico);
+  var sql = "DELETE FROM atendimento_antibioticos WHERE id_antibiotico = $1";
+  pool.query(sql, [id_antibiotico], (error, results) => {
+    if (error) throw error;
+    res.send(results);
+  });
+});
+
 // ATENDIMENTOS - DIETA.
 // listar todos os registros de dieta relativos ao atendimento selecionado.
 app.get("/list_dietas/:id_atendimento", (req, res) => {
@@ -1013,7 +1086,7 @@ app.post("/update_dieta/:id_dieta", (req, res) => {
     data_termino,
     id_atendimento
   } = req.body;
-  var sql = "UPDATE atendimento_culturas SET infusao = $1, get = $2, tipo = $3, data_inicio = $4, data_termino = $5, id_atendimento = $6 WHERE id_dieta = $7";
+  var sql = "UPDATE atendimento_dietas SET infusao = $1, get = $2, tipo = $3, data_inicio = $4, data_termino = $5, id_atendimento = $6 WHERE id_dieta = $7";
   pool.query(sql, [
     infusao,
     get,
@@ -1033,6 +1106,187 @@ app.get("/delete_dieta/:id_dieta", (req, res) => {
   const id_dieta = parseInt(req.params.id_dieta);
   var sql = "DELETE FROM atendimento_dietas WHERE id_dieta = $1";
   pool.query(sql, [id_dieta], (error, results) => {
+    if (error) throw error;
+    res.send(results);
+  });
+});
+
+// ATENDIMENTOS - INTERCONSULTAS.
+// listar todos os registros de interconsultas.
+app.get("/all_interconsultas", (req, res) => {
+  var sql = "SELECT * FROM atendimento_interconsultas";
+  pool.query(sql, (error, results) => {
+    if (error) throw error;
+    res.send(results);
+  });
+});
+
+// listar todos os registros de interconsultas relativos ao atendimento selecionado.
+app.get("/list_interconsultas/:id_atendimento", (req, res) => {
+  const id_atendimento = parseInt(req.params.id_atendimento);
+  var sql = "SELECT * FROM atendimento_interconsultas WHERE id_atendimento = $1";
+  pool.query(sql, [id_atendimento], (error, results) => {
+    if (error) throw error;
+    res.send(results);
+  });
+});
+
+// inserir interconsulta.
+app.post("/insert_interconsulta", (req, res) => {
+  const {
+    id_atendimento,
+    especialidade,
+    status,
+    data_pedido,
+  } = req.body;
+  var sql = "INSERT INTO atendimento_interconsultas (id_atendimento, especialidade, status, data_pedido) VALUES ($1, $2, $3, $4)"
+  pool.query(sql, [
+    id_atendimento,
+    especialidade,
+    status,
+    data_pedido,
+  ], (error, results) => {
+    if (error) throw error;
+    res.send(results);
+  });
+});
+
+// atualizar interconsulta.
+app.post("/update_interconsulta/:id_interconsulta", (req, res) => {
+  const id_interconsulta = parseInt(req.params.id_interconsulta);
+  const {
+    id_atendimento,
+    especialidade,
+    status,
+    data_pedido,
+  } = req.body;
+  var sql = "UPDATE atendimento_interconsultas SET id_atendimento = $1, especialidade = $2, status = $3, data_pedido = $4 WHERE id_interconsulta = $5";
+  pool.query(sql, [
+    id_atendimento,
+    especialidade,
+    status,
+    data_pedido,
+    id_interconsulta,
+  ], (error, results) => {
+    if (error) throw error;
+    res.send(results);
+  });
+});
+
+// excluir interconsulta.
+app.get("/delete_interconsulta/:id_interconsulta", (req, res) => {
+  const id_interconsulta = parseInt(req.params.id_interconsulta);
+  var sql = "DELETE FROM atendimento_interconsultas WHERE id_interconsulta = $1";
+  pool.query(sql, [id_interconsulta], (error, results) => {
+    if (error) throw error;
+    res.send(results);
+  });
+});
+
+// ## CONFIGURAÇÕES / SETTINGS ##
+// listar configurações.
+app.get("/settings/:id_usuario", (req, res) => {
+  const id_usuario = parseInt(req.params.id_usuario);
+  var sql = "SELECT * FROM settings WHERE id_usuario = $1";
+  pool.query(sql, [id_usuario], (error, results) => {
+    if (error) throw error;
+    res.send(results);
+  });
+});
+
+// inserir configurações.
+app.post("/insert_settings", (req, res) => {
+  const {
+    id_usuario,
+    tema,
+    card_diasinternacao,
+    card_alergias,
+    card_anamnese,
+    card_evolucoes,
+    card_propostas,
+    card_precaucoes,
+    card_riscos,
+    card_alertas,
+    card_sinaisvitais,
+    card_body,
+    card_vm,
+    card_infusoes,
+    card_dieta,
+    card_culturas,
+    card_antibioticos,
+    card_interconsultas
+  } = req.body;
+  var sql = "INSERT INTO settings (id_usuario, tema, card_diasinternacao, card_alergias, card_anamnese, card_evolucoes, card_propostas, card_precaucoes, card_riscos, card_alertas, card_sinaisvitais, card_body, card_vm, card_infusoes, card_dieta, card_culturas, card_antibioticos, card_interconsultas) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)"
+  pool.query(sql, [
+    id_usuario,
+    tema,
+    card_diasinternacao,
+    card_alergias,
+    card_anamnese,
+    card_evolucoes,
+    card_propostas,
+    card_precaucoes,
+    card_riscos,
+    card_alertas,
+    card_sinaisvitais,
+    card_body,
+    card_vm,
+    card_infusoes,
+    card_dieta,
+    card_culturas,
+    card_antibioticos,
+    card_interconsultas
+  ], (error, results) => {
+    if (error) throw error;
+    res.send(results);
+  });
+});
+
+// atualizar configurações.
+app.post("/update_settings/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const {
+    id_usuario,
+    tema,
+    card_diasinternacao,
+    card_alergias,
+    card_anamnese,
+    card_evolucoes,
+    card_propostas,
+    card_precaucoes,
+    card_riscos,
+    card_alertas,
+    card_sinaisvitais,
+    card_body,
+    card_vm,
+    card_infusoes,
+    card_dieta,
+    card_culturas,
+    card_antibioticos,
+    card_interconsultas
+  } = req.body;
+  var sql = "UPDATE settings SET id_usuario = $1, tema = $2, card_diasinternacao = $3, card_alergias = $4, card_anamnese = $5, card_evolucoes = $6, card_propostas = $7, card_precaucoes = $8, card_riscos = $9, card_alertas = $10, card_sinaisvitais = $11, card_body = $12, card_vm = $13, card_infusoes = $14, card_dieta = $15, card_culturas = $16, card_antibioticos = $17, card_interconsultas = $18 WHERE id = $19";
+  pool.query(sql, [
+    id_usuario,
+    tema,
+    card_diasinternacao,
+    card_alergias,
+    card_anamnese,
+    card_evolucoes,
+    card_propostas,
+    card_precaucoes,
+    card_riscos,
+    card_alertas,
+    card_sinaisvitais,
+    card_body,
+    card_vm,
+    card_infusoes,
+    card_dieta,
+    card_culturas,
+    card_antibioticos,
+    card_interconsultas,
+    id,
+  ], (error, results) => {
     if (error) throw error;
     res.send(results);
   });
