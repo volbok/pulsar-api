@@ -2,7 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 var cors = require("cors");
 const app = express();
-const port = 3333;
+const PORT = 3333;
 
 app.use(cors());
 app.use(function (req, res, next) {
@@ -30,8 +30,8 @@ app.get("/", (request, response) => {
   });
 });
 
-app.listen(port, () => {
-  console.log("API rodando na porta " + port);
+app.listen(PORT, () => {
+  console.log("API rodando na porta " + PORT);
 });
 
 const Pool = require("pg").Pool;
