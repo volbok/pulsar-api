@@ -1,6 +1,11 @@
+// login com token.
+require("dotenv-safe").config();
+const jwt = require('jsonwebtoken');
+
 const express = require("express");
 const bodyParser = require("body-parser");
 var cors = require("cors");
+const { request } = require("express");
 const app = express();
 const PORT = process.env.PORT || 3333;
 
@@ -36,20 +41,22 @@ app.listen(PORT, () => {
 
 const Pool = require("pg").Pool;
 const pool = new Pool({
-  
-  /*
+
+
   user: "postgres",
   host: "localhost",
   database: "pulsar",
   password: "pulsar",
   port: 5432,
-  */
 
+
+  /*
   user: "postgres",
   host: "containers-us-west-113.railway.app",
   database: "railway",
   password: "lLZKfPKkseKKt9y3Hht1",
   port: 5581,
+  */
 
 });
 
@@ -76,7 +83,7 @@ app.get("/list_unidades", (req, res) => {
 });
 
 // USUÁRIOS.
-// login e identificação do usuário.
+// login e identificação do usuário, com entrega de token (JWT).
 app.post("/checkusuario", (req, res) => {
   const {
     usuario,
@@ -85,17 +92,199 @@ app.post("/checkusuario", (req, res) => {
   var sql = "SELECT * FROM usuarios WHERE login = $1 AND senha = $2";
   pool.query(sql, [usuario, senha], (error, results) => {
     if (error) throw error;
-    res.send(results);
+
+    var x = results.rows;
+    const id = x.map(item => item.id_usuario).pop();
+    const nome = x.map(item => item.nome_usuario).pop();
+
+    const token = jwt.sign({ id, nome }, process.env.SECRET, {
+      expiresIn: 30 // expires in 5min
+    });
+
+    console.log(id + ' - ' + nome + ' - ' + token);
+    res.json({ auth: true, token: token, id, nome });
   });
 });
 
+function verifyJWT(req, res, next) {
+  const token = req.headers.authorization;
+  console.log('TOKEN RECEBIDO DO FRONT: ' + req.headers.authorization);
+  if (!token) return res.status(401).json({ auth: false, message: 'NENHUM TOKEN FOI GERADO. HACKER!' });
+
+  jwt.verify(token, process.env.SECRET, function (err, decoded) {
+    if (err) return res.status(500).json({ auth: false, message: 'TOKEN PARA VALIDAÇÃO DO ACESSO EXPIRADO.' });
+    // se tudo estiver ok, salva no request para uso posterior
+    req.userId = decoded.id;
+    next();
+  });
+}
+
 // identificando unidades de acesso do usuário logado.
-app.post("/getunidades", (req, res) => {
+app.post("/getunidades", verifyJWT, (req, res) => {
   const {
     id_usuario,
   } = req.body;
   var sql = "SELECT * FROM usuarios_acessos WHERE id_usuario = $1";
   pool.query(sql, [id_usuario], (error, results) => {
+    if (error) throw error;
+    res.send(results);
+  });
+});
+
+// listar todos os usuários cadastrados na aplicação.
+app.get("/list_usuarios", (req, res) => {
+  var sql = "SELECT * FROM usuarios";
+  pool.query(sql, (error, results) => {
+    if (error) throw error;
+    res.send(results);
+  });
+});
+
+// inserir usuário.
+app.post("/insert_usuario", (req, res) => {
+  const {
+    nome_usuario,
+    dn_usuario,
+    cpf_usuario,
+    email_usuario,
+    senha,
+    login,
+  } = req.body;
+  var sql = "INSERT INTO usuarios (nome_usuario, dn_usuario, cpf_usuario, email_usuario, senha, login) VALUES ($1, $2, $3, $4, $5, $6)";
+  pool.query(sql, [
+    nome_usuario,
+    dn_usuario,
+    cpf_usuario,
+    email_usuario,
+    senha,
+    login,
+  ], (error, results) => {
+    if (error) throw error;
+    res.send(results);
+  });
+});
+
+// atualizar usuário.
+app.post("/update_usuario/:id_usuario", (req, res) => {
+  const id_usuario = parseInt(req.params.id_usuario);
+  const {
+    nome_usuario,
+    dn_usuario,
+    cpf_usuario,
+    email_usuario,
+    senha,
+    login,
+  } = req.body;
+  var sql = "UPDATE usuarios SET nome_usuario = $1, dn_usuario = $2, cpf_usuario = $3, email_usuario = $4, senha = $5, login = $6 WHERE id_usuario = $7";
+  pool.query(sql, [
+    nome_usuario,
+    dn_usuario,
+    cpf_usuario,
+    email_usuario,
+    senha,
+    login,
+    id_usuario,
+  ], (error, results) => {
+    if (error) throw error;
+    res.send(results);
+  });
+});
+
+// excluir usuário.
+app.get("/delete_usuario/:id_usuario", (req, res) => {
+  const id_usuario = parseInt(req.params.id_usuario);
+  var sql = "DELETE FROM usuarios WHERE id_usuario = $1";
+  pool.query(sql, [id_usuario], (error, results) => {
+    if (error) throw error;
+    res.send(results);
+  });
+});
+
+// ACESSOS.
+// listar todos os hospitais cadastrados.
+app.get("/list_hospitais", (req, res) => {
+  var sql = "SELECT * FROM cliente_hospital";
+  pool.query(sql, (error, results) => {
+    if (error) throw error;
+    res.send(results);
+  });
+});
+
+// listar todas as unidades vinculadas a hospitais cadastradas.
+app.get("/list_unidades", (req, res) => {
+  var sql = "SELECT * FROM cliente_unidade";
+  pool.query(sql, (error, results) => {
+    if (error) throw error;
+    res.send(results);
+  });
+});
+
+// listar todos os acessos cadastrados.
+app.get("/list_todos_acessos", (req, res) => {
+  var sql = "SELECT * FROM usuarios_acessos";
+  pool.query(sql, (error, results) => {
+    if (error) throw error;
+    res.send(results);
+  });
+});
+
+// listar os acessos cadastrados para a unidade controlada pelo coordenador do serviço.
+app.get("/list_acessos/:id_unidade", (req, res) => {
+  const id_unidade = parseInt(req.params.id_unidade);
+  var sql = "SELECT * FROM usuarios_acessos WHERE id_unidade = $1";
+  pool.query(sql, [id_unidade], (error, results) => {
+    if (error) throw error;
+    res.send(results);
+  });
+});
+
+// inserir acesso.
+app.post("/insert_acesso", (req, res) => {
+  const {
+    id_cliente, // hospital.
+    id_unidade, // cti.
+    id_usuario, // id do usuário.
+    boss, // privilégio para manipular acessos.
+  } = req.body;
+  var sql = "INSERT INTO usuarios_acessos (id_cliente, id_unidade, id_usuario, boss) VALUES ($1, $2, $3, $4)";
+  pool.query(sql, [
+    id_cliente,
+    id_unidade,
+    id_usuario,
+    boss,
+  ], (error, results) => {
+    if (error) throw error;
+    res.send(results);
+  });
+});
+
+// atualizar acesso.
+app.post("/update_acesso/:id_acesso", (req, res) => {
+  const id_acesso = parseInt(req.params.id_acesso);
+  const {
+    id_cliente,
+    id_unidade,
+    id_usuario,
+    boss,
+  } = req.body;
+  var sql = "UPDATE usuarios_acessos SET id_cliente = $1, id_unidade = $2, id_usuario = $3, boss = $4 WHERE id_acesso = $5";
+  pool.query(sql, [
+    id_cliente,
+    id_unidade,
+    id_usuario,
+    boss,
+    id_acesso,
+  ], (error, results) => {
+    if (error) throw error;
+    res.send(results);
+  });
+});
+
+// excluir acesso.
+app.get("/delete_acesso/:id_acesso", (req, res) => {
+  const id_acesso = parseInt(req.params.id_acesso);
+  var sql = "DELETE FROM usuarios_acessos WHERE id_acesso = $1";
+  pool.query(sql, [id_acesso], (error, results) => {
     if (error) throw error;
     res.send(results);
   });
@@ -421,7 +610,7 @@ app.get("/delete_risco/:id_risco", (req, res) => {
 
 // ATENDIMENTOS.
 // listar todos os atendimentos do paciente selecionado.
-app.get("/list_atendimentos/:id_unidade", (req, res) => {
+app.get("/list_atendimentos/:id_unidade", verifyJWT, (req, res) => {
   const id_unidade = parseInt(req.params.id_unidade);
   var sql = "SELECT * FROM atendimento WHERE id_unidade = $1 AND data_termino IS NULL";
   pool.query(sql, [id_unidade], (error, results) => {
