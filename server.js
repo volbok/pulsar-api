@@ -67,7 +67,7 @@ const pool = new Pool({
 app.get("/list_hospitais", (req, res) => {
   var sql = "SELECT * FROM cliente_hospital";
   pool.query(sql, (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -77,7 +77,7 @@ app.get("/list_hospitais", (req, res) => {
 app.get("/list_unidades", (req, res) => {
   var sql = "SELECT * FROM cliente_unidade";
   pool.query(sql, (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -91,18 +91,20 @@ app.post("/checkusuario", (req, res) => {
   } = req.body;
   var sql = "SELECT * FROM usuarios WHERE login = $1 AND senha = $2";
   pool.query(sql, [usuario, senha], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
 
     var x = results.rows;
     const id = x.map(item => item.id_usuario).pop();
     const nome = x.map(item => item.nome_usuario).pop();
+    const dn = x.map(item => item.dn_usuario).pop();
+    const cpf = x.map(item => item.cpf_usuario).pop();
+    const email = x.map(item => item.email_usuario).pop();
 
-    const token = jwt.sign({ id, nome }, process.env.SECRET, {
+    const token = jwt.sign({ id, nome, dn, cpf, email }, process.env.SECRET, {
       expiresIn: 30 // expires in 5min
     });
 
-    console.log(id + ' - ' + nome + ' - ' + token);
-    res.json({ auth: true, token: token, id, nome });
+    res.json({ auth: true, token: token, id, nome, dn, cpf, email });
   });
 });
 
@@ -126,16 +128,16 @@ app.post("/getunidades", verifyJWT, (req, res) => {
   } = req.body;
   var sql = "SELECT * FROM usuarios_acessos WHERE id_usuario = $1";
   pool.query(sql, [id_usuario], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
 
 // listar todos os usuários cadastrados na aplicação.
-app.get("/list_usuarios", (req, res) => {
+app.get("/list_usuarios", verifyJWT, (req, res) => {
   var sql = "SELECT * FROM usuarios";
   pool.query(sql, (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -159,7 +161,7 @@ app.post("/insert_usuario", (req, res) => {
     senha,
     login,
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -185,7 +187,7 @@ app.post("/update_usuario/:id_usuario", (req, res) => {
     login,
     id_usuario,
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -195,7 +197,7 @@ app.get("/delete_usuario/:id_usuario", (req, res) => {
   const id_usuario = parseInt(req.params.id_usuario);
   var sql = "DELETE FROM usuarios WHERE id_usuario = $1";
   pool.query(sql, [id_usuario], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -205,7 +207,7 @@ app.get("/delete_usuario/:id_usuario", (req, res) => {
 app.get("/list_hospitais", (req, res) => {
   var sql = "SELECT * FROM cliente_hospital";
   pool.query(sql, (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -214,7 +216,7 @@ app.get("/list_hospitais", (req, res) => {
 app.get("/list_unidades", (req, res) => {
   var sql = "SELECT * FROM cliente_unidade";
   pool.query(sql, (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -223,7 +225,7 @@ app.get("/list_unidades", (req, res) => {
 app.get("/list_todos_acessos", (req, res) => {
   var sql = "SELECT * FROM usuarios_acessos";
   pool.query(sql, (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -233,7 +235,7 @@ app.get("/list_acessos/:id_unidade", (req, res) => {
   const id_unidade = parseInt(req.params.id_unidade);
   var sql = "SELECT * FROM usuarios_acessos WHERE id_unidade = $1";
   pool.query(sql, [id_unidade], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -253,7 +255,7 @@ app.post("/insert_acesso", (req, res) => {
     id_usuario,
     boss,
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -275,7 +277,7 @@ app.post("/update_acesso/:id_acesso", (req, res) => {
     boss,
     id_acesso,
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -285,17 +287,17 @@ app.get("/delete_acesso/:id_acesso", (req, res) => {
   const id_acesso = parseInt(req.params.id_acesso);
   var sql = "DELETE FROM usuarios_acessos WHERE id_acesso = $1";
   pool.query(sql, [id_acesso], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
 
 // PACIENTES.
 // listar todos os pacientes internados.
-app.get("/list_pacientes", (req, res) => {
+app.get("/list_pacientes", verifyJWT, (req, res) => {
   var sql = "SELECT * FROM paciente";
   pool.query(sql, (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -319,7 +321,7 @@ app.post("/insert_paciente", (req, res) => {
     medicacoes_previas,
     exames_previos,
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -345,7 +347,7 @@ app.post("/update_paciente/:id_paciente", (req, res) => {
     exames_previos,
     id_paciente
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -355,18 +357,18 @@ app.get("/delete_paciente/:id_paciente", (req, res) => {
   const id_paciente = parseInt(req.params.id_paciente);
   var sql = "DELETE FROM paciente WHERE id_paciente = $1";
   pool.query(sql, [id_paciente], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
 
 // PACIENTES - ALERGIAS.
 // listar todas as alergias do paciente selecionado.
-app.get("/paciente_alergias/:id_paciente", (req, res) => {
+app.get("/paciente_alergias/:id_paciente", verifyJWT, (req, res) => {
   const id_paciente = parseInt(req.params.id_paciente);
   var sql = "SELECT * FROM paciente_alergias WHERE id_paciente = $1";
   pool.query(sql, [id_paciente], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -382,7 +384,7 @@ app.post("/insert_alergia", (req, res) => {
     id_paciente,
     alergia,
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -400,7 +402,7 @@ app.post("/update_alergia/:id_alergia", (req, res) => {
     alergia,
     id_alergia
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -410,7 +412,7 @@ app.get("/delete_alergia/:id_alergia", (req, res) => {
   const id_alergia = parseInt(req.params.id_alergia);
   var sql = "DELETE FROM paciente_alergias WHERE id_alergia = $1";
   pool.query(sql, [id_alergia], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -421,7 +423,7 @@ app.get("/paciente_lesoes/:id_paciente", (req, res) => {
   const id_paciente = parseInt(req.params.id_paciente);
   var sql = "SELECT * FROM paciente_lesoes WHERE id_paciente = $1";
   pool.query(sql, [id_paciente], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -447,7 +449,7 @@ app.post("/insert_lesao", (req, res) => {
     data_abertura,
     data_fechamento
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -475,7 +477,7 @@ app.post("/update_lesao/:id_lesao", (req, res) => {
     data_fechamento,
     id_lesao
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -485,7 +487,7 @@ app.get("/delete_lesao/:id_lesao", (req, res) => {
   const id_lesao = parseInt(req.params.id_lesao);
   var sql = "DELETE FROM paciente_lesoes WHERE id_lesao = $1";
   pool.query(sql, [id_lesao], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -496,7 +498,7 @@ app.get("/paciente_precaucoes/:id_paciente", (req, res) => {
   const id_paciente = parseInt(req.params.id_paciente);
   var sql = "SELECT * FROM paciente_precaucoes WHERE id_paciente = $1";
   pool.query(sql, [id_paciente], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -516,7 +518,7 @@ app.post("/insert_precaucao", (req, res) => {
     data_inicio,
     data_termino
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -538,7 +540,7 @@ app.post("/update_precaucao/:id_precaucao", (req, res) => {
     data_termino,
     id_precaucao
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -548,7 +550,7 @@ app.get("/delete_precaucao/:id_precaucao", (req, res) => {
   const id_precaucao = parseInt(req.params.id_precaucao);
   var sql = "DELETE FROM paciente_precaucoes WHERE id_precaucao = $1";
   pool.query(sql, [id_precaucao], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -559,7 +561,7 @@ app.get("/paciente_riscos/:id_paciente", (req, res) => {
   const id_paciente = parseInt(req.params.id_paciente);
   var sql = "SELECT * FROM paciente_riscos WHERE id_paciente = $1";
   pool.query(sql, [id_paciente], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -575,7 +577,7 @@ app.post("/insert_risco", (req, res) => {
     id_paciente,
     risco
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -593,7 +595,7 @@ app.post("/update_risco/:id_risco", (req, res) => {
     risco,
     id_risco
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -603,7 +605,7 @@ app.get("/delete_risco/:id_risco", (req, res) => {
   const id_risco = parseInt(req.params.id_risco);
   var sql = "DELETE FROM paciente_riscos WHERE id_risco = $1";
   pool.query(sql, [id_risco], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -614,7 +616,7 @@ app.get("/list_atendimentos/:id_unidade", verifyJWT, (req, res) => {
   const id_unidade = parseInt(req.params.id_unidade);
   var sql = "SELECT * FROM atendimento WHERE id_unidade = $1 AND data_termino IS NULL";
   pool.query(sql, [id_unidade], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -642,7 +644,7 @@ app.post("/insert_atendimento", (req, res) => {
     leito,
     situacao
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -672,7 +674,7 @@ app.post("/update_atendimento/:id_atendimento", (req, res) => {
     situacao,
     id_atendimento
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -682,7 +684,7 @@ app.get("/delete_atendimento/:id_atendimento", (req, res) => {
   const id_atendimento = parseInt(req.params.id_atendimento);
   var sql = "DELETE FROM atendimento WHERE id_atendimento = $1";
   pool.query(sql, [id_atendimento], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -693,7 +695,7 @@ app.get("/list_evolucoes/:id_atendimento", (req, res) => {
   const id_atendimento = parseInt(req.params.id_atendimento);
   var sql = "SELECT * FROM atendimento_evolucoes WHERE id_atendimento = $1";
   pool.query(sql, [id_atendimento], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -713,7 +715,7 @@ app.post("/insert_evolucao", (req, res) => {
     data_evolucao,
     id_usuario
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -735,7 +737,7 @@ app.post("/update_evolucao/:id_evolucao", (req, res) => {
     id_usuario,
     id_evolucao
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -745,7 +747,7 @@ app.get("/delete_evolucao/:id_evolucao", (req, res) => {
   const id_evolucao = parseInt(req.params.id_evolucao);
   var sql = "DELETE FROM atendimento_evolucoes WHERE id_evolucao = $1";
   pool.query(sql, [id_evolucao], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -756,7 +758,7 @@ app.get("/list_infusoes/:id_atendimento", (req, res) => {
   const id_atendimento = parseInt(req.params.id_atendimento);
   var sql = "SELECT * FROM atendimento_infusoes WHERE id_atendimento = $1";
   pool.query(sql, [id_atendimento], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -778,7 +780,7 @@ app.post("/insert_infusao", (req, res) => {
     data_inicio,
     data_termino
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -802,7 +804,7 @@ app.post("/update_infusao/:id_infusao", (req, res) => {
     data_termino,
     id_infusao
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -812,7 +814,7 @@ app.get("/delete_infusao/:id_infusao", (req, res) => {
   const id_infusao = parseInt(req.params.id_infusao);
   var sql = "DELETE FROM atendimento_infusoes WHERE id_infusao = $1";
   pool.query(sql, [id_infusao], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -823,7 +825,7 @@ app.get("/list_invasoes/:id_atendimento", (req, res) => {
   const id_atendimento = parseInt(req.params.id_atendimento);
   var sql = "SELECT * FROM atendimento_invasoes WHERE id_atendimento = $1";
   pool.query(sql, [id_atendimento], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -845,7 +847,7 @@ app.post("/insert_invasao", (req, res) => {
     data_implante,
     data_retirada
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -869,7 +871,7 @@ app.post("/update_invasao/:id_invasao", (req, res) => {
     data_retirada,
     id_invasao
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -879,7 +881,7 @@ app.get("/delete_invasao/:id_invasao", (req, res) => {
   const id_invasao = parseInt(req.params.id_invasao);
   var sql = "DELETE FROM atendimento_invasoes WHERE id_invasao = $1";
   pool.query(sql, [id_invasao], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -890,7 +892,7 @@ app.get("/list_propostas/:id_atendimento", (req, res) => {
   const id_atendimento = parseInt(req.params.id_atendimento);
   var sql = "SELECT * FROM atendimento_propostas WHERE id_atendimento = $1";
   pool.query(sql, [id_atendimento], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -916,7 +918,7 @@ app.post("/insert_proposta", (req, res) => {
     prazo,
     data_conclusao,
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -944,7 +946,7 @@ app.post("/update_proposta/:id_proposta", (req, res) => {
     data_conclusao,
     id_proposta
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -954,7 +956,7 @@ app.get("/delete_proposta/:id_proposta", (req, res) => {
   const id_proposta = parseInt(req.params.id_proposta);
   var sql = "DELETE FROM atendimento_propostas WHERE id_proposta = $1";
   pool.query(sql, [id_proposta], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -965,7 +967,7 @@ app.get("/list_sinais_vitais/:id_atendimento", (req, res) => {
   const id_atendimento = parseInt(req.params.id_atendimento);
   var sql = "SELECT * FROM atendimento_sinais_vitais WHERE id_atendimento = $1";
   pool.query(sql, [id_atendimento], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -989,7 +991,7 @@ app.post("/insert_sinais_vitais", (req, res) => {
     evacuacao, estase,
     data_sinais_vitais
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1015,7 +1017,7 @@ app.post("/update_sinais_vitais/:id_sinais_vitais", (req, res) => {
     data_sinais_vitais,
     id_sinais_vitais
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1025,7 +1027,7 @@ app.get("/delete_sinais_vitais/:id_sinais_vitais", (req, res) => {
   const id_sinais_vitais = parseInt(req.params.id_sinais_vitais);
   var sql = "DELETE FROM atendimento_sinais_vitais WHERE id_sinais_vitais = $1";
   pool.query(sql, [id_sinais_vitais], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1036,7 +1038,7 @@ app.get("/list_vm/:id_atendimento", (req, res) => {
   const id_atendimento = parseInt(req.params.id_atendimento);
   var sql = "SELECT * FROM atendimento_vm WHERE id_atendimento = $1";
   pool.query(sql, [id_atendimento], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1062,7 +1064,7 @@ app.post("/insert_vm", (req, res) => {
     fio2,
     data_vm
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1090,7 +1092,7 @@ app.post("/update_vm/:id_vm", (req, res) => {
     data_vm,
     id_vm
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1100,7 +1102,7 @@ app.get("/delete_vm/:id_vm", (req, res) => {
   const id_vm = parseInt(req.params.id_vm);
   var sql = "DELETE FROM atendimento_vm WHERE id_vm = $1";
   pool.query(sql, [id_vm], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1111,7 +1113,7 @@ app.get("/list_culturas/:id_atendimento", (req, res) => {
   const id_atendimento = parseInt(req.params.id_atendimento);
   var sql = "SELECT * FROM atendimento_culturas WHERE id_atendimento = $1";
   pool.query(sql, [id_atendimento], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1133,7 +1135,7 @@ app.post("/insert_cultura", (req, res) => {
     data_pedido,
     data_resultado,
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1157,7 +1159,7 @@ app.post("/update_cultura/:id_cultura", (req, res) => {
     data_resultado,
     id_cultura
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1167,7 +1169,7 @@ app.get("/delete_cultura/:id_cultura", (req, res) => {
   const id_cultura = parseInt(req.params.id_cultura);
   var sql = "DELETE FROM atendimento_culturas WHERE id_cultura = $1";
   pool.query(sql, [id_cultura], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1178,7 +1180,7 @@ app.get("/list_antibioticos/:id_atendimento", (req, res) => {
   const id_atendimento = parseInt(req.params.id_atendimento);
   var sql = "SELECT * FROM atendimento_antibioticos WHERE id_atendimento = $1";
   pool.query(sql, [id_atendimento], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1200,7 +1202,7 @@ app.post("/insert_antibiotico", (req, res) => {
     data_termino,
     prazo,
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1224,7 +1226,7 @@ app.post("/update_antibiotico/:id_antibiotico", (req, res) => {
     prazo,
     id_antibiotico
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1234,7 +1236,7 @@ app.get("/delete_antibiotico/:id_antibiotico", (req, res) => {
   const id_antibiotico = parseInt(req.params.id_antibiotico);
   var sql = "DELETE FROM atendimento_antibioticos WHERE id_antibiotico = $1";
   pool.query(sql, [id_antibiotico], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1245,7 +1247,7 @@ app.get("/list_dietas/:id_atendimento", (req, res) => {
   const id_atendimento = parseInt(req.params.id_atendimento);
   var sql = "SELECT * FROM atendimento_dietas WHERE id_atendimento = $1";
   pool.query(sql, [id_atendimento], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1269,7 +1271,7 @@ app.post("/insert_dieta", (req, res) => {
     data_termino,
     id_atendimento
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1295,7 +1297,7 @@ app.post("/update_dieta/:id_dieta", (req, res) => {
     id_atendimento,
     id_dieta
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1305,7 +1307,7 @@ app.get("/delete_dieta/:id_dieta", (req, res) => {
   const id_dieta = parseInt(req.params.id_dieta);
   var sql = "DELETE FROM atendimento_dietas WHERE id_dieta = $1";
   pool.query(sql, [id_dieta], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1315,7 +1317,7 @@ app.get("/delete_dieta/:id_dieta", (req, res) => {
 app.get("/all_interconsultas", (req, res) => {
   var sql = "SELECT * FROM atendimento_interconsultas";
   pool.query(sql, (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1325,7 +1327,7 @@ app.get("/list_interconsultas/:id_atendimento", (req, res) => {
   const id_atendimento = parseInt(req.params.id_atendimento);
   var sql = "SELECT * FROM atendimento_interconsultas WHERE id_atendimento = $1";
   pool.query(sql, [id_atendimento], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1345,7 +1347,7 @@ app.post("/insert_interconsulta", (req, res) => {
     status,
     data_pedido,
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1367,7 +1369,7 @@ app.post("/update_interconsulta/:id_interconsulta", (req, res) => {
     data_pedido,
     id_interconsulta,
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1377,7 +1379,7 @@ app.get("/delete_interconsulta/:id_interconsulta", (req, res) => {
   const id_interconsulta = parseInt(req.params.id_interconsulta);
   var sql = "DELETE FROM atendimento_interconsultas WHERE id_interconsulta = $1";
   pool.query(sql, [id_interconsulta], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1388,7 +1390,7 @@ app.get("/settings/:id_usuario", (req, res) => {
   const id_usuario = parseInt(req.params.id_usuario);
   var sql = "SELECT * FROM settings WHERE id_usuario = $1";
   pool.query(sql, [id_usuario], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1436,7 +1438,7 @@ app.post("/insert_settings", (req, res) => {
     card_antibioticos,
     card_interconsultas
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
@@ -1486,7 +1488,7 @@ app.post("/update_settings/:id", (req, res) => {
     card_interconsultas,
     id,
   ], (error, results) => {
-    if (error) throw error;
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
