@@ -42,21 +42,19 @@ app.listen(PORT, () => {
 const Pool = require("pg").Pool;
 const pool = new Pool({
 
-
-  user: "postgres",
-  host: "localhost",
-  database: "pulsar",
-  password: "pulsar",
-  port: 5432,
-
-
   /*
+    user: "postgres",
+    host: "localhost",
+    database: "pulsar",
+    password: "pulsar",
+    port: 5432,
+  */
+
   user: "postgres",
   host: "containers-us-west-113.railway.app",
   database: "railway",
   password: "lLZKfPKkseKKt9y3Hht1",
   port: 5581,
-  */
 
 });
 
