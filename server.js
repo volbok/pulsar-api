@@ -105,7 +105,7 @@ app.post("/checkusuario", (req, res) => {
     console.log('NOME: ' + email);
 
     const token = jwt.sign({ id }, process.env.SECRET, {
-      expiresIn: 30 // expires in 5min
+      expiresIn: 1800 // expira em 30 minutos.
     });
 
     res.json({ auth: true, token: token, id: id, nome: nome, dn: dn, cpf: cpf, email: email });
