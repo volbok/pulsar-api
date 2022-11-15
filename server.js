@@ -98,10 +98,15 @@ app.post("/checkusuario", (req, res) => {
     const cpf = x.map(item => item.cpf_usuario).pop();
     const email = x.map(item => item.email_usuario).pop();
 
-    const token = jwt.sign({ id, nome, dn, cpf, email }, process.env.SECRET, {
+    console.log('NOME: ' + nome);
+    console.log('NOME: ' + dn);
+    console.log('NOME: ' + cpf);
+    console.log('NOME: ' + email);
+
+    const token = jwt.sign({ id }, process.env.SECRET, {
       expiresIn: 30 // expires in 5min
     });
-    
+
     res.json({ auth: true, token: token, id: id, nome: nome, dn: dn, cpf: cpf, email: email });
   });
 });
