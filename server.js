@@ -98,6 +98,7 @@ app.post("/checkusuario", (req, res) => {
     const cpf = x.map(item => item.cpf_usuario).pop();
     const email = x.map(item => item.email_usuario).pop();
 
+    console.log(JSON.stringify(x));
     console.log('NOME: ' + nome);
     console.log('NOME: ' + dn);
     console.log('NOME: ' + cpf);
