@@ -104,11 +104,14 @@ app.post("/checkusuario", (req, res) => {
     console.log('NOME: ' + cpf);
     console.log('NOME: ' + email);
 
-    const token = jwt.sign({ id }, process.env.SECRET, {
-      expiresIn: 1800 // expira em 30 minutos.
-    });
-
-    res.json({ auth: true, token: token, id: id, nome: nome, dn: dn, cpf: cpf, email: email });
+    if (x.length > 0) {
+      const token = jwt.sign({ id }, process.env.SECRET, {
+        expiresIn: 1800 // expira em 30 minutos.
+      });
+      res.json({ auth: true, token: token, id: id, nome: nome, dn: dn, cpf: cpf, email: email });
+    } else {
+      res.json({ auth: false })
+    }
   });
 });
 
