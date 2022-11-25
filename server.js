@@ -1499,3 +1499,68 @@ app.post("/update_settings/:id", (req, res) => {
     res.send(results);
   });
 });
+
+// listagem de todos os dados dos atendimentos (para gerar PDF).
+app.get("/all_evolucoes", (req, res) => {
+  var sql = "SELECT * FROM atendimento_evolucoes";
+  pool.query(sql, (error, results) => {
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
+    res.send(results);
+  });
+});
+
+app.get("/all_antibioticos", (req, res) => {
+  var sql = "SELECT * FROM atendimento_antibioticos";
+  pool.query(sql, (error, results) => {
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
+    res.send(results);
+  });
+});
+
+app.get("/all_culturas", (req, res) => {
+  var sql = "SELECT * FROM atendimento_culturas";
+  pool.query(sql, (error, results) => {
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
+    res.send(results);
+  });
+});
+
+app.get("/all_infusoes", (req, res) => {
+  var sql = "SELECT * FROM atendimento_infusoes";
+  pool.query(sql, (error, results) => {
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
+    res.send(results);
+  });
+});
+
+app.get("/all_invasoes", (req, res) => {
+  var sql = "SELECT * FROM atendimento_invasoes";
+  pool.query(sql, (error, results) => {
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
+    res.send(results);
+  });
+});
+
+app.get("/all_propostas", (req, res) => {
+  var sql = "SELECT * FROM atendimento_propostas";
+  pool.query(sql, (error, results) => {
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
+    res.send(results);
+  });
+});
+
+app.get("/all_vm", (req, res) => {
+  var sql = "SELECT * FROM atendimento_vm";
+  pool.query(sql, (error, results) => {
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
+    res.send(results);
+  });
+});
+
+app.get("/all_interconsultas", (req, res) => {
+  var sql = "SELECT * FROM atendimento_interconsultas";
+  pool.query(sql, (error, results) => {
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
+    res.send(results);
+  });
+});
