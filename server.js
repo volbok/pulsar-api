@@ -318,8 +318,9 @@ app.post("/insert_paciente", (req, res) => {
     antecedentes_pessoais,
     medicacoes_previas,
     exames_previos,
+    exames_atuais,
   } = req.body;
-  var sql = "INSERT INTO paciente (nome_paciente, nome_mae_paciente, dn_paciente, antecedentes_pessoais, medicacoes_previas, exames_previos) VALUES ($1, $2, $3, $4, $5, $6)"
+  var sql = "INSERT INTO paciente (nome_paciente, nome_mae_paciente, dn_paciente, antecedentes_pessoais, medicacoes_previas, exames_previos, exames_atuais) VALUES ($1, $2, $3, $4, $5, $6, $7)"
   pool.query(sql, [
     nome_paciente,
     nome_mae_paciente,
@@ -327,6 +328,7 @@ app.post("/insert_paciente", (req, res) => {
     antecedentes_pessoais,
     medicacoes_previas,
     exames_previos,
+    exames_atuais,
   ], (error, results) => {
     if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
@@ -343,8 +345,9 @@ app.post("/update_paciente/:id_paciente", (req, res) => {
     antecedentes_pessoais,
     medicacoes_previas,
     exames_previos,
+    exames_atuais,
   } = req.body;
-  var sql = "UPDATE paciente SET nome_paciente = $1, nome_mae_paciente = $2, dn_paciente = $3, antecedentes_pessoais = $4, medicacoes_previas = $5, exames_previos = $6 WHERE id_paciente = $7";
+  var sql = "UPDATE paciente SET nome_paciente = $1, nome_mae_paciente = $2, dn_paciente = $3, antecedentes_pessoais = $4, medicacoes_previas = $5, exames_previos = $6, exames_atuais = $7  WHERE id_paciente = $8";
   pool.query(sql, [
     nome_paciente,
     nome_mae_paciente,
@@ -352,6 +355,7 @@ app.post("/update_paciente/:id_paciente", (req, res) => {
     antecedentes_pessoais,
     medicacoes_previas,
     exames_previos,
+    exames_atuais,
     id_paciente
   ], (error, results) => {
     if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
