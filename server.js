@@ -1561,9 +1561,116 @@ app.get("/all_vm", (req, res) => {
   });
 });
 
-app.get("/all_interconsultas", (req, res) => {
-  var sql = "SELECT * FROM atendimento_interconsultas";
+// ## PRESCRIÇÃO ##
+app.get("/all_prescricoes", (req, res) => {
+  var sql = "SELECT * FROM atendimento_prescricoes";
   pool.query(sql, (error, results) => {
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
+    res.send(results);
+  });
+});
+
+// listar todos os registros de prescrições relativas ao atendimento selecionado.
+app.get("/list_prescricoes/:id_atendimento", (req, res) => {
+  const id_atendimento = parseInt(req.params.id_atendimento);
+  var sql = "SELECT * FROM atendimento_prescricoes WHERE id_atendimento = $1";
+  pool.query(sql, [id_atendimento], (error, results) => {
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
+    res.send(results);
+  });
+});
+
+// inserir item de prescrição.
+app.post("/insert_prescricao", (req, res) => {
+  const {
+    id_unidade,
+    id_paciente,
+    id_atendimento,
+    categoria,
+    componente,
+    codigo_item,
+    nome_item,
+    qtde_item,
+    via,
+    freq,
+    agora,
+    acm,
+    sn,
+    obs,
+    data,
+  } = req.body;
+  var sql = "INSERT INTO atendimento_prescricoes (id_unidade, id_paciente, id_atendimento, categoria, componente, codigo_item, nome_item, qtde_item, via, freq, agora, acm, sn, obs, data,) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)"
+  pool.query(sql, [
+    id_unidade,
+    id_paciente,
+    id_atendimento,
+    categoria,
+    componente,
+    codigo_item,
+    nome_item,
+    qtde_item,
+    via,
+    freq,
+    agora,
+    acm,
+    sn,
+    obs,
+    data,
+  ], (error, results) => {
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
+    res.send(results);
+  });
+});
+
+// atualizar prescrição.
+app.post("/update_prescricao/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const {
+    id_unidade,
+    id_paciente,
+    id_atendimento,
+    categoria,
+    componente,
+    codigo_item,
+    nome_item,
+    qtde_item,
+    via,
+    freq,
+    agora,
+    acm,
+    sn,
+    obs,
+    data,
+  } = req.body;
+  var sql = "UPDATE atendimento_prescricoes SET id_unidade = $1, id_paciente = $2, id_atendimento = $3, categoria = $4, componente = $5, codigo_item = $6, nome_item = $7, qtde_item = $8, via = $9, freq = $10, agora = $11, acm = $12, sn = $13, obs = $14,  data = $15 WHERE id = $16";
+  pool.query(sql, [
+    id_unidade,
+    id_paciente,
+    id_atendimento,
+    categoria,
+    componente,
+    codigo_item,
+    nome_item,
+    qtde_item,
+    via,
+    freq,
+    agora,
+    acm,
+    sn,
+    obs,
+    data,
+    id,
+  ], (error, results) => {
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
+    res.send(results);
+  });
+});
+
+// excluir registro de prescrição.
+app.get("/delete_prescricao/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  var sql = "DELETE FROM atendimento_prescricoes WHERE id = $1";
+  pool.query(sql, [id], (error, results) => {
     if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
