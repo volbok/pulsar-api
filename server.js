@@ -1570,7 +1570,7 @@ app.get("/all_prescricoes", (req, res) => {
   });
 });
 
-// listar todos os registros de prescrições relativas ao atendimento selecionado.
+// listar todos os registros de itens de prescrição relativas ao atendimento selecionado.
 app.get("/list_prescricoes/:id_atendimento", (req, res) => {
   const id_atendimento = parseInt(req.params.id_atendimento);
   var sql = "SELECT * FROM atendimento_prescricoes WHERE id_atendimento = $1";
@@ -1598,8 +1598,9 @@ app.post("/insert_prescricao", (req, res) => {
     sn,
     obs,
     data,
+    id_pai
   } = req.body;
-  var sql = "INSERT INTO atendimento_prescricoes (id_unidade, id_paciente, id_atendimento, categoria, componente, codigo_item, nome_item, qtde_item, via, freq, agora, acm, sn, obs, data,) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)"
+  var sql = "INSERT INTO atendimento_prescricoes (id_unidade, id_paciente, id_atendimento, categoria, componente, codigo_item, nome_item, qtde_item, via, freq, agora, acm, sn, obs, data, id_pai) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)"
   pool.query(sql, [
     id_unidade,
     id_paciente,
@@ -1616,13 +1617,14 @@ app.post("/insert_prescricao", (req, res) => {
     sn,
     obs,
     data,
+    id_pai
   ], (error, results) => {
     if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
   });
 });
 
-// atualizar prescrição.
+// atualizar item de prescrição.
 app.post("/update_prescricao/:id", (req, res) => {
   const id = parseInt(req.params.id);
   const {
@@ -1641,8 +1643,9 @@ app.post("/update_prescricao/:id", (req, res) => {
     sn,
     obs,
     data,
+    id_pai,
   } = req.body;
-  var sql = "UPDATE atendimento_prescricoes SET id_unidade = $1, id_paciente = $2, id_atendimento = $3, categoria = $4, componente = $5, codigo_item = $6, nome_item = $7, qtde_item = $8, via = $9, freq = $10, agora = $11, acm = $12, sn = $13, obs = $14,  data = $15 WHERE id = $16";
+  var sql = "UPDATE atendimento_prescricoes SET id_unidade = $1, id_paciente = $2, id_atendimento = $3, categoria = $4, componente = $5, codigo_item = $6, nome_item = $7, qtde_item = $8, via = $9, freq = $10, agora = $11, acm = $12, sn = $13, obs = $14, data = $15, id_pai = $16 WHERE id = $17";
   pool.query(sql, [
     id_unidade,
     id_paciente,
@@ -1659,6 +1662,7 @@ app.post("/update_prescricao/:id", (req, res) => {
     sn,
     obs,
     data,
+    id_pai,
     id,
   ], (error, results) => {
     if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
@@ -1666,10 +1670,83 @@ app.post("/update_prescricao/:id", (req, res) => {
   });
 });
 
-// excluir registro de prescrição.
+// excluir registro de item de prescrição.
 app.get("/delete_prescricao/:id", (req, res) => {
   const id = parseInt(req.params.id);
   var sql = "DELETE FROM atendimento_prescricoes WHERE id = $1";
+  pool.query(sql, [id], (error, results) => {
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
+    res.send(results);
+  });
+});
+
+// ## OPÇÕES DE ITENS DE PRESCRIÇÃO ##
+app.get("/opcoes_prescricoes", (req, res) => {
+  var sql = "SELECT * FROM prescricoes";
+  pool.query(sql, (error, results) => {
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
+    res.send(results);
+  });
+});
+
+// inserir item de opção de prescrição.
+app.post("/insert_opcoes_prescricao", (req, res) => {
+  const {
+    nome_item,
+    categoria,
+    qtde_item,
+    via,
+    freq,
+    obs,
+    id_pai,
+  } = req.body;
+  var sql = "INSERT INTO prescricoes (nome_item, categoria, qtde_item, via, freq, obs, id_pai) VALUES ($1, $2, $3, $4, $5, $6, $7)"
+  pool.query(sql, [
+    nome_item,
+    categoria,
+    qtde_item,
+    via,
+    freq,
+    obs,
+    id_pai,
+  ], (error, results) => {
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
+    res.send(results);
+  });
+});
+
+// atualizar item de opção de prescrição.
+app.post("/update_opcoes_prescricao/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const {
+    nome_item,
+    categoria,
+    qtde_item,
+    via,
+    freq,
+    obs,
+    id_pai,
+  } = req.body;
+  var sql = "UPDATE prescricoes SET nome_item = $1, categoria = $2, qtde_item = $3, via = $4, freq = $5, obs = $6, id_pai = $7 WHERE id = $8";
+  pool.query(sql, [
+    nome_item,
+    categoria,
+    qtde_item,
+    via,
+    freq,
+    obs,
+    id_pai,
+    id,
+  ], (error, results) => {
+    if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
+    res.send(results);
+  });
+});
+
+// excluir registro de opção de item de prescrição.
+app.get("/delete_opcoes_prescricao/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  var sql = "DELETE FROM prescricoes WHERE id = $1";
   pool.query(sql, [id], (error, results) => {
     if (error) return res.json({ success: false, message: 'ERRO DE CONEXÃO.' });
     res.send(results);
