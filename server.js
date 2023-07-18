@@ -19,7 +19,7 @@ app.use(function (req, res, next) {
     "Access-Control-Allow-Private-Network",
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept",
-    "Access-Control-Allow-Origin: *",
+    "Access-Control-Allow-Origin: *"
   );
   next();
 });
@@ -93,13 +93,15 @@ app.post("/checkusuario", (req, res) => {
     const dn = x.map((item) => item.dn_usuario).pop();
     const cpf = x.map((item) => item.cpf_usuario).pop();
     const email = x.map((item) => item.email_usuario).pop();
-
-    console.log(JSON.stringify(x));
-    console.log("NOME: " + nome);
-    console.log("NOME: " + dn);
-    console.log("NOME: " + cpf);
-    console.log("NOME: " + email);
-
+    const conselho = x.map((item) => item.conselho).pop();
+    const n_conselho = x.map((item) => item.n_conselho).pop();
+    const tipo_usuario = x.map((item) => item.tipo_usuario).pop();
+    const paciente = x.map((item) => item.paciente).pop();
+    const prontuario = x.map((item) => item.prontuario).pop();
+    const laboratorio = x.map((item) => item.laboratorio).pop();
+    const farmacia = x.map((item) => item.farmacia).pop();
+    const faturamento = x.map((item) => item.faturamento).pop();
+    const usuarios = x.map((item) => item.usuarios).pop();
     if (x.length > 0) {
       const token = jwt.sign({ id }, process.env.SECRET, {
         expiresIn: 1800, // expira em 30 minutos.
@@ -112,6 +114,15 @@ app.post("/checkusuario", (req, res) => {
         dn: dn,
         cpf: cpf,
         email: email,
+        conselho: conselho,
+        n_conselho: n_conselho,
+        tipo_usuario: tipo_usuario,
+        paciente: paciente,
+        prontuario: prontuario,
+        laboratorio: laboratorio,
+        farmacia: farmacia,
+        faturamento: faturamento,
+        usuarios: usuarios,
       });
     } else {
       res.json({ auth: false });
@@ -153,59 +164,6 @@ app.post("/getunidades", verifyJWT, (req, res) => {
 app.get("/list_usuarios", verifyJWT, (req, res) => {
   var sql = "SELECT * FROM usuarios";
   pool.query(sql, (error, results) => {
-    if (error) return res.json({ success: false, message: "ERRO DE CONEXÃO." });
-    res.send(results);
-  });
-});
-
-// inserir usuário.
-app.post("/insert_usuario", (req, res) => {
-  const { nome_usuario, dn_usuario, cpf_usuario, email_usuario, senha, login } =
-    req.body;
-  var sql =
-    "INSERT INTO usuarios (nome_usuario, dn_usuario, cpf_usuario, email_usuario, senha, login) VALUES ($1, $2, $3, $4, $5, $6)";
-  pool.query(
-    sql,
-    [nome_usuario, dn_usuario, cpf_usuario, email_usuario, senha, login],
-    (error, results) => {
-      if (error)
-        return res.json({ success: false, message: "ERRO DE CONEXÃO." });
-      res.send(results);
-    }
-  );
-});
-
-// atualizar usuário.
-app.post("/update_usuario/:id_usuario", (req, res) => {
-  const id_usuario = parseInt(req.params.id_usuario);
-  const { nome_usuario, dn_usuario, cpf_usuario, email_usuario, senha, login } =
-    req.body;
-  var sql =
-    "UPDATE usuarios SET nome_usuario = $1, dn_usuario = $2, cpf_usuario = $3, email_usuario = $4, senha = $5, login = $6 WHERE id_usuario = $7";
-  pool.query(
-    sql,
-    [
-      nome_usuario,
-      dn_usuario,
-      cpf_usuario,
-      email_usuario,
-      senha,
-      login,
-      id_usuario,
-    ],
-    (error, results) => {
-      if (error)
-        return res.json({ success: false, message: "ERRO DE CONEXÃO." });
-      res.send(results);
-    }
-  );
-});
-
-// excluir usuário.
-app.get("/delete_usuario/:id_usuario", (req, res) => {
-  const id_usuario = parseInt(req.params.id_usuario);
-  var sql = "DELETE FROM usuarios WHERE id_usuario = $1";
-  pool.query(sql, [id_usuario], (error, results) => {
     if (error) return res.json({ success: false, message: "ERRO DE CONEXÃO." });
     res.send(results);
   });
@@ -1769,6 +1727,82 @@ app.get("/delete_opcoes_prescricao/:id", (req, res) => {
   const id = parseInt(req.params.id);
   var sql = "DELETE FROM prescricoes WHERE id = $1";
   pool.query(sql, [id], (error, results) => {
+    if (error) return res.json({ success: false, message: "ERRO DE CONEXÃO." });
+    res.send(results);
+  });
+});
+
+app.post("/inserir_usuario", (req, res) => {
+  const { nome_usuario, dn_usuario, cpf_usuario, email_usuario } = req.body;
+  var sql =
+    "INSERT INTO usuarios (nome_usuario, dn_usuario, cpf_usuario, email_usuario) VALUES ($1, $2, $3, $4)";
+  pool.query(
+    sql,
+    [nome_usuario, dn_usuario, cpf_usuario, email_usuario],
+    (error, results) => {
+      if (error)
+        return res.json({ success: false, message: "ERRO DE CONEXÃO." });
+      res.send(results);
+    }
+  );
+});
+
+
+// atualizar usuário.
+app.post("/update_usuario/:id_usuario", (req, res) => {
+  const id_usuario = parseInt(req.params.id_usuario);
+  const {
+    nome_usuario,
+    dn_usuario,
+    cpf_usuario,
+    email_usuario,
+    senha,
+    login,
+    conselho,
+    n_conselho,
+    tipo_usuario,
+    paciente,
+    prontuario,
+    laboratorio,
+    farmacia,
+    faturamento,
+    usuarios,
+  } = req.body;
+  var sql =
+    "UPDATE usuarios SET nome_usuario = $1, dn_usuario = $2, cpf_usuario = $3, email_usuario = $4, senha = $5, login = $6, conselho = $7, n_conselho = $8, tipo_usuario = $9, paciente = $10, prontuario = $11, laboratorio = $12, farmacia = $13, faturamento = $14, usuarios = $15 WHERE id_usuario = $16";
+  pool.query(
+    sql,
+    [
+      nome_usuario,
+      dn_usuario,
+      cpf_usuario,
+      email_usuario,
+      senha,
+      login,
+      conselho,
+      n_conselho,
+      tipo_usuario,
+      paciente,
+      prontuario,
+      laboratorio,
+      farmacia,
+      faturamento,
+      usuarios,
+      id_usuario,
+    ],
+    (error, results) => {
+      if (error)
+        return res.json({ success: false, message: "ERRO DE CONEXÃO." });
+      res.send(results);
+    }
+  );
+});
+
+// excluir usuário.
+app.get("/delete_usuario/:id_usuario", (req, res) => {
+  const id_usuario = parseInt(req.params.id_usuario);
+  var sql = "DELETE FROM usuarios WHERE id_usuario = $1";
+  pool.query(sql, [id_usuario], (error, results) => {
     if (error) return res.json({ success: false, message: "ERRO DE CONEXÃO." });
     res.send(results);
   });
